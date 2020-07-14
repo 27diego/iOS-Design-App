@@ -31,7 +31,8 @@ struct ContentView: View {
             )
             
             BackCardView()
-                .frame(width: showCard ? 300 : 340, height: 220)
+                .frame(maxWidth: showCard ? 300 : 340)
+                .frame(height: 220)
                 .background(Color(show ? "card3" : "card4"))
                 .cornerRadius(20)
                 .shadow(radius: 20)
@@ -41,12 +42,13 @@ struct ContentView: View {
                 .scaleEffect( showCard ? 1 : 0.9)
                 .rotationEffect(.degrees( show ? 0 : 10))
                 .rotationEffect(Angle(degrees: showCard ? -10 : 0))
-                .rotation3DEffect(Angle(degrees: showCard ? 0 : 10), axis: (x: 10.0, y: 0, z: 0))
+//                .rotation3DEffect(Angle(degrees: showCard ? 0 : 10), axis: (x: 10.0, y: 0, z: 0))
                 .blendMode(.hardLight)
                 .animation(.easeInOut(duration: 0.5))
             
             BackCardView()
-                .frame(width: 340, height: 220)
+                .frame(maxWidth: 340)
+                .frame(height: 220)
                 .background(Color( show ? "card4" : "card3"))
                 .cornerRadius(20)
                 .shadow(radius: 20)
@@ -56,12 +58,13 @@ struct ContentView: View {
                 .scaleEffect( showCard ? 1 : 0.95)
                 .rotationEffect(Angle(degrees: show ? 0 : 5)) //conditional rendering of animation state
                 .rotationEffect(Angle(degrees: showCard ? -5 : 0))
-                .rotation3DEffect(Angle(degrees: showCard ? 0 : 5), axis: (x: 10.0, y: 0, z: 0))
+//                .rotation3DEffect(Angle(degrees: showCard ? 0 : 5), axis: (x: 10.0, y: 0, z: 0))
                 .blendMode(.hardLight)
                 .animation(.easeInOut(duration: 0.3))
             
             CardView()
-                .frame(width: showCard ? 375 : 340.0, height: 220.0)
+                .frame(maxWidth: showCard ? 375 : 340.0)
+                .frame(height: 220.0)
                 .background(Color.black)
 //                .cornerRadius(20)
                 .clipShape(RoundedRectangle(cornerRadius: showCard ? 30 : 20, style: .continuous))
@@ -87,42 +90,44 @@ struct ContentView: View {
 //            Text("\(bottomState.height)")
 //                .offset(y: -300)
 //
-            
-            BottomCardView(show: $showCard)
-                .offset(x: 0, y: showCard ? 360 : 1000)
-                .offset(y: bottomState.height)
-                .blur(radius: show ? 20 : 0)
-                .animation(.timingCurve(0.2, 0.8, 0.2, 1, duration: 0.8))
-                .onTapGesture {
-                    if self.showFull{
-                        self.bottomState = .zero
-//                        self.showCard = false
+            GeometryReader { geo in
+                BottomCardView(show: self.$showCard)
+                    .offset(x: 0, y: self.showCard ? geo.size.height / 2 : geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom)
+                    .offset(y: self.bottomState.height)
+                    .blur(radius: self.show ? 20 : 0)
+                    .animation(.timingCurve(0.2, 0.8, 0.2, 1, duration: 0.8))
+                    .onTapGesture {
+                        if self.showFull{
+                            self.bottomState = .zero
+    //                        self.showCard = false
+                        }
+                }
+                .gesture(
+                    DragGesture().onChanged { value in
+                        self.bottomState = value.translation
+                        if self.showFull{
+                            self.bottomState.height += -300
+                        }
+                        if self.bottomState.height < -300 {
+                            self.bottomState.height = -300
+                        }
                     }
+                    .onEnded { value in
+                        if self.bottomState.height > 50{
+                            self.showCard = false
+                        }
+                        if (self.bottomState.height < -100 && !self.showFull) || (self.bottomState.height < -250 && self.showFull) {
+                            self.bottomState.height = -300
+                            self.showFull = true
+                        }
+                        else{
+                            self.bottomState = .zero
+                            self.showFull = false
+                        }
+                    }
+                )
             }
-            .gesture(
-                DragGesture().onChanged { value in
-                    self.bottomState = value.translation
-                    if self.showFull{
-                        self.bottomState.height += -300
-                    }
-                    if self.bottomState.height < -300 {
-                        self.bottomState.height = -300
-                    }
-                }
-                .onEnded { value in
-                    if self.bottomState.height > 50{
-                        self.showCard = false
-                    }
-                    if (self.bottomState.height < -100 && !self.showFull) || (self.bottomState.height < -250 && self.showFull) {
-                        self.bottomState.height = -300
-                        self.showFull = true
-                    }
-                    else{
-                        self.bottomState = .zero
-                        self.showFull = false
-                    }
-                }
-            )
+//            .edgesIgnoringSafeArea(.all)
         }
     }
 }
@@ -178,6 +183,9 @@ struct TitleView: View {
             }
             .padding()
             Image("Background1")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 375)
             Spacer()
         }
     }
@@ -220,9 +228,10 @@ struct BottomCardView: View {
         }
         .padding(.top, 8)
         .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: 712)
         .background(BlurView(style: .systemUltraThinMaterial))
         .cornerRadius(30)
         .shadow(radius: 20)
+        .frame(maxWidth: .infinity)
     }
 }

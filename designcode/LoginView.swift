@@ -20,6 +20,8 @@ struct LoginView: View {
     @State var isLoading = false
     @State var isSuccessful = false
     
+    @EnvironmentObject var user: UserStore
+    
     func logIn(){
         self.hideKeyBoard()
         self.isFocused = false
@@ -34,11 +36,14 @@ struct LoginView: View {
             }
             else{
                 self.isSuccessful = true
+                self.user.isLogged = true
+                UserDefaults.standard.set(true, forKey: "isLogged")
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     self.isSuccessful = false
                     self.email = ""
                     self.password = ""
+                    self.user.showLogin = false
                 }
             }
         }
@@ -195,7 +200,7 @@ struct CoverView: View {
                     .offset(x: -150, y: -200)
                     .rotationEffect(Angle(degrees: show ? 360+90 : 90))
                     .blendMode(.plusDarker)
-//                    .animation(Animation.linear(duration: 120).repeatForever(autoreverses: false))
+                    .animation(Animation.linear(duration: 120).repeatForever(autoreverses: false))
                     .animation(nil)
                     .onAppear {
                         self.show = true
@@ -205,7 +210,7 @@ struct CoverView: View {
                     .offset(x: -200, y: -250)
                     .rotationEffect(Angle(degrees: show ? 360 : 0), anchor: .leading)
                     .blendMode(.overlay)
-//                    .animation(Animation.linear(duration: 100).repeatForever(autoreverses: false))
+                    .animation(Animation.linear(duration: 100).repeatForever(autoreverses: false))
                  .animation(nil)
             }
         )
